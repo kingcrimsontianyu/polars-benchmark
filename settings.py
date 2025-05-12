@@ -64,6 +64,7 @@ class Run(BaseSettings):
         env_prefix="run_", env_file=".env", extra="ignore"
     )
 
+    # export RUN_DROP_CACHES=ON/OFF
     drop_caches: bool = False # Clear page caches prior to each query
 
 
