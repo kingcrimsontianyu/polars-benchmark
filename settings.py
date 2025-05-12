@@ -64,6 +64,8 @@ class Run(BaseSettings):
         env_prefix="run_", env_file=".env", extra="ignore"
     )
 
+    drop_caches: bool = False # Clear page caches prior to each query
+
 
 class Plot(BaseSettings):
     show: bool = False

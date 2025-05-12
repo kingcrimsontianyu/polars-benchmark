@@ -100,6 +100,14 @@ def _get_query_numbers(library_name: str) -> list[int]:
     return sorted(query_numbers)
 
 
+def _drop_page_cache() -> None:
+    print("--> Dropping the page caches")
+    full_command = "sync"
+    run(full_command.split())
+
+    full_command = "sudo /sbin/sysctl vm.drop_caches=3"
+    run(full_command.split())
+
 def run_query_generic(
     query: Callable[..., Any],
     query_number: int,
@@ -109,6 +117,9 @@ def run_query_generic(
 ) -> None:
     """Execute a query."""
     for _ in range(settings.run.iterations):
+        if settings.run.drop_caches:
+            _drop_page_cache()
+
         with CodeTimer(
             name=f"Run {library_name} query {query_number}", unit="s"
         ) as timer:
