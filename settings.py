@@ -58,6 +58,9 @@ class Run(BaseSettings):
     # export RUN_DROP_CACHES=ON/OFF
     drop_caches: bool = False # Clear page caches prior to each query
 
+    # export RUN_PRINT_PAGE_CACHE_INFO=ON/OFF
+    print_page_cache_info: bool = False
+
     @computed_field  # type: ignore[prop-decorator]
     @property
     def include_io(self) -> bool:

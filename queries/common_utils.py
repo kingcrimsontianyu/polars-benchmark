@@ -108,6 +108,31 @@ def _drop_page_cache() -> None:
     full_command = "sudo /sbin/sysctl vm.drop_caches=3"
     run(full_command.split())
 
+def _print_page_cache_info(filepath):
+    full_command = "fincore -b {:}".format(filepath)
+    process_result = run(full_command.split(),
+                         capture_output=True, text=True)
+    if process_result.returncode != 0:
+        raise ValueError("process not completed successfully.")
+    page_cache_result = process_result.stdout.split()
+    num_bytes_in_page_cache = int(page_cache_result[4])  # "RES"
+    num_bytes = int(page_cache_result[6])  # "SIZE"
+    percent = num_bytes_in_page_cache / num_bytes
+    print("    filepath: {:}, page cache residency percent = {:}".format(filepath, percent))
+
+def _print_all_page_cache_info():
+    print("--> print all page cache info")
+    all_table_paths = [get_table_path("customer"),
+                       get_table_path("lineitem"),
+                       get_table_path("nation"),
+                       get_table_path("orders"),
+                       get_table_path("part"),
+                       get_table_path("partsupp"),
+                       get_table_path("region"),
+                       get_table_path("supplier")]
+    for table_path in all_table_paths:
+        _print_page_cache_info(table_path)
+
 def run_query_generic(
     query: Callable[..., Any],
     query_number: int,
@@ -119,6 +144,9 @@ def run_query_generic(
     for _ in range(settings.run.iterations):
         if settings.run.drop_caches:
             _drop_page_cache()
+
+        if settings.run.print_page_cache_info:
+            _print_all_page_cache_info()
 
         with CodeTimer(
             name=f"Run {library_name} query {query_number}", unit="s"
