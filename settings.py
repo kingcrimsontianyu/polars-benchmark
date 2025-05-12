@@ -55,6 +55,9 @@ class Run(BaseSettings):
     spark_executor_memory: str = "1g"  # Tune as needed for optimal performance
     spark_log_level: str = "ERROR"
 
+    # export RUN_DROP_CACHES=ON/OFF
+    drop_caches: bool = False # Clear page caches prior to each query
+
     @computed_field  # type: ignore[prop-decorator]
     @property
     def include_io(self) -> bool:
@@ -63,9 +66,6 @@ class Run(BaseSettings):
     model_config = SettingsConfigDict(
         env_prefix="run_", env_file=".env", extra="ignore"
     )
-
-    # export RUN_DROP_CACHES=ON/OFF
-    drop_caches: bool = False # Clear page caches prior to each query
 
 
 class Plot(BaseSettings):
