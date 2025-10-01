@@ -1,5 +1,7 @@
+from pathlib import Path
+from typing import Any
+
 import duckdb
-from duckdb import DuckDBPyRelation
 
 from queries.common_utils import (
     check_query_result_pl,
@@ -9,6 +11,7 @@ from queries.common_utils import (
 from settings import Settings
 
 settings = Settings()
+_connection = None
 
 
 def _scan_ds(table_name: str) -> str:
@@ -21,11 +24,9 @@ def _scan_ds(table_name: str) -> str:
             f"create temp table if not exists {name} as select * from read_parquet('{path_str}');"
         )
         return name
-    elif settings.run.io_type == "parquet":
-        duckdb.read_parquet(path_str)
-        return f"'{path_str}'"
-    elif settings.run.io_type == "csv":
-        duckdb.read_csv(path_str)
+    elif settings.run.io_type == "duckdb":
+        return table_name
+    elif settings.run.io_type == "parquet" or settings.run.io_type == "csv":
         return f"'{path_str}'"
     else:
         msg = f"unsupported file type: {settings.run.io_type!r}"
@@ -64,8 +65,39 @@ def get_part_supp_ds() -> str:
     return _scan_ds("partsupp")
 
 
-def run_query(query_number: int, context: DuckDBPyRelation) -> None:
-    query = context.pl
+def get_persistent_path() -> str:
+    return str(Path(get_table_path("lineitem")).parent / Path("tpch.db"))
+
+
+def get_connection() -> duckdb.DuckDBPyConnection:
+    global _connection
+    if _connection is None:
+        if settings.run.io_type == "duckdb":
+            # connect to persistent db
+            _connection = duckdb.connect(get_persistent_path())
+        elif settings.run.io_type == "skip":
+            _connection = duckdb.connect(":default:")
+        else:
+            # connect to in-memory db
+            _connection = duckdb.connect()
+    return _connection
+
+
+def run_query(query_number: int, query: str) -> None:
+    conn = get_connection()
+    if settings.run.show_results:
+
+        def execute() -> Any:
+            print(conn.sql(query))
+    elif settings.run.check_results:
+
+        def execute() -> Any:
+            return conn.sql(query).pl()
+    else:
+
+        def execute() -> Any:
+            conn.sql(query).fetchall()
+
     run_query_generic(
-        query, query_number, "duckdb", query_checker=check_query_result_pl
+        execute, query_number, "duckdb", query_checker=check_query_result_pl
     )

@@ -1,5 +1,3 @@
-import duckdb
-
 from queries.duckdb import utils
 
 Q_NUM = 1
@@ -32,9 +30,7 @@ def q() -> None:
         l_linestatus
     """
 
-    q_final = duckdb.sql(query_str)
-
-    utils.run_query(Q_NUM, q_final)
+    utils.run_query(Q_NUM, query_str)
 
 
 if __name__ == "__main__":

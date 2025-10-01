@@ -4,13 +4,13 @@ from typing import Literal, TypeAlias
 from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-IoType: TypeAlias = Literal["skip", "parquet", "feather", "csv"]
+IoType: TypeAlias = Literal["skip", "parquet", "feather", "csv", "duckdb"]
 
 
 # Set via PATH_<NAME>
 class Paths(BaseSettings):
     answers: Path = Path("data/answers")
-    tables: Path = Path("data/tables")
+    tables: Path = Path("data/tables").absolute()
 
     timings: Path = Path("output/run")
     timings_filename: str = "timings.csv"
@@ -54,6 +54,8 @@ class Run(BaseSettings):
     spark_driver_memory: str = "2g"  # Tune as needed for optimal performance
     spark_executor_memory: str = "1g"  # Tune as needed for optimal performance
     spark_log_level: str = "ERROR"
+
+    pandas_gpu: bool = False  # Use cudf.pandas to run pandas benchmarks
 
     # export RUN_DROP_CACHES=ON/OFF
     drop_caches: bool = False # Clear page caches prior to each query

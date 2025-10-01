@@ -1,6 +1,12 @@
 .DEFAULT_GOAL := help
 
-PYTHONPATH=
+# Depending on how the Python interpreter was built and whether PYTHONSAFEPATH
+# is set the current working directory may not be on sys.path. It is especially
+# problematic if PYTHONSAFEPATH is set in rc files that load in every subshell
+# since this repository launches each query in a subshell. To get around such
+# problems, we add the current directory to PYTHONPATH unconditionally,
+# bypassing any dependence on the default values in sys.path.
+export PYTHONPATH := $(PWD):$(PYTHONPATH)
 SHELL=/bin/bash
 VENV=.venv
 VENV_BIN=$(VENV)/bin
@@ -100,6 +106,14 @@ run-duckdb: .venv data-tables ## Run DuckDB benchmarks
 .PHONY: run-pandas
 run-pandas: .venv data-tables ## Run pandas benchmarks
 	$(VENV_BIN)/python -m queries.pandas
+
+.PHONY: run-pandas-no-env
+run-pandas-no-env: ## Run pandas benchmarks
+	python -m queries.pandas
+
+.PHONY: run-pandas-gpu-no-env
+run-pandas-gpu-no-env: ## Run pandas benchmarks
+	RUN_PANDAS_GPU=true python -m queries.pandas
 
 .PHONY: run-pyspark
 run-pyspark: .venv data-tables ## Run PySpark benchmarks

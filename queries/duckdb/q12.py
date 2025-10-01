@@ -1,5 +1,3 @@
-import duckdb
-
 from queries.duckdb import utils
 
 Q_NUM = 12
@@ -39,9 +37,7 @@ def q() -> None:
     order by
         l_shipmode
 	"""
-    q_final = duckdb.sql(query_str)
-
-    utils.run_query(Q_NUM, q_final)
+    utils.run_query(Q_NUM, query_str)
 
 
 if __name__ == "__main__":

@@ -149,6 +149,8 @@ def run_query_generic(
     query_checker: Callable[..., None] | None = None,
 ) -> None:
     """Execute a query."""
+    # execute the query once to ensure we are getting a hot run
+    query()
     for _ in range(settings.run.iterations):
         if settings.run.drop_caches:
             _drop_page_cache()
